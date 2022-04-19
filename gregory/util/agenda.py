@@ -1,8 +1,24 @@
 import calendar
 from datetime import date, datetime, timedelta
+from dateutil.rrule import DAILY, rrule, MO, TU, WE, TH, FR, SA, SU
+import numpy as np
 
 from .decorators import day_or_datetime
 from ..util.relativedelta import relativedelta
+
+WEEKMASK = [
+    [1, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 1]
+]
+
+WEEKDAYS = [MO, TU, WE, TH, FR, SA, SU]
+
+weekday_assertion_msg = "Weekday must be between 1 and 7."
 
 
 @day_or_datetime
@@ -70,14 +86,14 @@ def last_day_of_year(day: date) -> date:
 
 @day_or_datetime
 def days_of_month(day: date) -> int:
-    """Returns the lenght of the month containing the day, expressed in days."""
+    """Returns the length of the month containing the day, expressed in days."""
     return calendar.monthrange(day.year, day.month)[1]
 
 
 @day_or_datetime
 def days_of_quarter(day: date) -> int:
     """
-    Returns the lenght of the quarter containing the day, expressed in days.
+    Returns the length of the quarter containing the day, expressed in days.
     """
     first_day = first_day_of_quarter(day)
     last_day = last_day_of_quarter(day)
@@ -86,8 +102,21 @@ def days_of_quarter(day: date) -> int:
 
 @day_or_datetime
 def days_of_year(day: date) -> int:
-    """Returns the lenght of the year containing the day, expressed in days."""
+    """Returns the length of the year containing the day, expressed in days."""
     return 365 + calendar.isleap(day.year)
+
+
+def weekdays_of_range(start_date: date, end_date: date, weekday: int, exclusive: bool = False):
+    assert 1 <= weekday <= 7, weekday_assertion_msg
+    day_times = rrule(
+        freq=DAILY,
+        dtstart=start_date,
+        until=end_date + relativedelta(days=int(exclusive)),
+        byweekday=(WEEKDAYS[weekday-1])
+    )
+    days = [day_time.date() for day_time in day_times]
+    n_days = len(days)
+    return n_days, days
 
 
 def calendar_by_steps(start_date: date, end_date: date, step: relativedelta) -> list:

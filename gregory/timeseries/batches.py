@@ -1,3 +1,4 @@
+from copy import copy
 from typing import List
 from ..dataclass.time_series_data import TimeSeriesData
 from ..granularity.granularity import Granularity, DailyGranularity
@@ -9,7 +10,7 @@ from ..util.bisect import *
 def batches(
         ts: TimeSeries,
         granularity: Granularity = DailyGranularity(),
-        first_day_of_batch: int = 1,
+        first_day_of_batch: int = 0,
         n_elements: int = -1
 ) -> List[TimeSeries]:
     """
@@ -21,16 +22,16 @@ def batches(
         granularity (Granularity, optional): Time step to use to divide the 
         input series. Defaults to DailyGranularity().
         first_day_of_batch (int, optional): The day of the time step to use as 
-        first delimiter. Defaults to 1.
+        first delimiter (0-indexed). Defaults to 0.
         n_elements (int, optional): The length of the sub-set of the time step 
-        to use. Defaults to 0.
+        to use. Defaults to -1.
 
     Returns:
         List[TimeSeries]: A list of small time series.
     """
     assert n_elements > 0 or n_elements == - \
         1, "'n_elements' must be greater than 0 or set to -1 to get all elements."
-    assert first_day_of_batch >= 1, "'first_day_of_batch' can't be lesser than 1."
+    assert first_day_of_batch >= 0, "'first_day_of_batch' can't be lesser than 0."
 
     res = []
 
@@ -43,7 +44,7 @@ def batches(
     while f_day <= ts.end_date:
         if n_elements > 0:
             l_day = granularity.get_n_day_of_granularity(
-                day=f_day, n=n_elements)
+                day=f_day, idx=n_elements-1)
         else:
             l_day = granularity.get_end_of_granularity(day=f_day)
 
@@ -63,8 +64,9 @@ def aggregate_on_first_day(
         ts: TimeSeries,
         granularity: Granularity = DailyGranularity(),
         method=sum,
-        first_day_of_batch: int = 1,
-        n_elements: int = -1
+        first_day_of_batch: int = 0,
+        n_elements: int = -1,
+        on_last_day: bool = False
 ) -> TimeSeries:
     """
     Divides the input time series in many sub-sets for each contained time step 
@@ -77,29 +79,31 @@ def aggregate_on_first_day(
         input series. Defaults to DailyGranularity().
         method (optional): Aggregation function. Defaults to sum.
         first_day_of_batch (int, optional): The day of the time step to use as 
-        first delimiter. Defaults to 1.
+        first delimiter (0-indexed). Defaults to 0.
         n_elements (int, optional): The length of the sub-set of the time step 
-        to use. Defaults to 0.
+        to use. Defaults to -1.
+        on_last_day (bool, optional): Aggregate on the last day instead of the
+        first one. Defaults to False.
 
     Returns:
         TimeSeries: A new time series with aggregated values.
     """
     assert n_elements > 0 or n_elements == - \
         1, "'n_elements' must be greater than 0 or set to -1 to get all elements."
-    assert first_day_of_batch >= 1, "'first_day_of_batch' can't be lesser than 1."
+    assert first_day_of_batch >= 0, "'first_day_of_batch' can't be lesser than 0."
 
     res = []
 
     fst_av_beg = granularity.get_first_available_beginning(day=ts.start_date)
     f_day = granularity.get_n_day_of_granularity(
-        fst_av_beg, first_day_of_batch)
+        fst_av_beg, idx=first_day_of_batch)
 
     temp_ts = ts.__deepcopy__()
 
     while f_day <= ts.end_date:
         if n_elements > 0:
             l_day = granularity.get_n_day_of_granularity(
-                day=f_day, n=n_elements)
+                day=f_day, idx=n_elements-1)
         else:
             l_day = granularity.get_end_of_granularity(day=f_day)
 
@@ -110,7 +114,7 @@ def aggregate_on_first_day(
 
         res.append(
             TimeSeriesData(
-                day=f_day,
+                day=l_day if on_last_day else f_day,
                 series=aggregate_series
             )
         )
@@ -121,38 +125,80 @@ def aggregate_on_first_day(
     return TimeSeries(res)
 
 
-def first_days(
+def pick_a_day(
         ts: TimeSeries,
         granularity: Granularity = DailyGranularity(),
-        first_day_of_batch: int = 1
+        day_of_batch: int = -1
 ) -> TimeSeries:
     """
     Divides the input time series in many sub-sets for each contained time step 
-    of the given granularity. Then returns a new TimeSeries with only the first 
+    of the given granularity. Then returns a new TimeSeries with only the n-th
     day of each batch.
 
     Args:
         ts (TimeSeries): Input time series.
         granularity (Granularity, optional): Time step to use to divide the 
         input series. Defaults to DailyGranularity().
-        first_day_of_batch (int, optional): The day of the time step to use as 
-        first delimiter. Defaults to 1.
+        day_of_batch (int, optional): The day of the time step to pick as 
+        reference (0-indexed). Defaults to -1.
 
     Returns:
         TimeSeries: A new time series with only a day for each step.
     """
-    assert first_day_of_batch >= 1, "'first_day_of_batch' can't be lesser than 1."
+    assert day_of_batch > -1, "'day_of_batch' can't be lesser than -1."
 
     res = []
     fst_av_beg = granularity.get_first_available_beginning(day=ts.start_date)
-    f_day = granularity.get_n_day_of_granularity(
-        fst_av_beg, first_day_of_batch)
+    f_day = granularity.get_n_day_of_granularity(fst_av_beg, day_of_batch)
 
     while f_day <= ts.end_date:
         res.append(
-            ts.get(day=f_day, else_empty=True)
+            copy(ts.get(day=f_day, else_empty=True))
         )
 
-        f_day += granularity.delta
+        fst_av_beg += granularity.delta
+        f_day = granularity.get_n_day_of_granularity(fst_av_beg, day_of_batch)
+
+    return TimeSeries(res)
+
+
+def pick_a_weekday(
+        ts: TimeSeries,
+        granularity: Granularity = DailyGranularity(),
+        day_of_batch: int = -1,
+        weekday: int = 1
+) -> TimeSeries:
+    """
+    Divides the input time series in many sub-sets for each contained time step
+    of the given granularity. Then returns a new TimeSeries with only the n-th 
+    chosen day of the week of each batch.
+
+    Args:
+        ts (TimeSeries): Input time series.
+        granularity (Granularity, optional): Time step to use to divide the
+        input series. Defaults to DailyGranularity().
+        day_of_batch (int, optional): The weekday of the time step to pick as 
+        reference (0-indexed). Defaults to -1.
+        weekday (int, optional): The day of the time step to use as
+        first delimiter (1-indexed). Defaults to 1.
+
+    Returns:
+        TimeSeries: A new time series with only a day for each step.
+    """
+    assert day_of_batch > -1, "'day_of_batch' can't be lesser than -1."
+
+    res = []
+    fst_av_beg = granularity.get_first_available_beginning(day=ts.start_date)
+    f_day = granularity.get_n_weekday_of_granularity(
+        day=fst_av_beg, weekday=weekday, idx=day_of_batch)
+
+    while f_day <= ts.end_date:
+        res.append(
+            copy(ts.get(day=f_day, else_empty=True))
+        )
+
+        fst_av_beg += granularity.delta
+        f_day = granularity.get_n_weekday_of_granularity(
+            day=fst_av_beg, weekday=weekday, idx=day_of_batch)
 
     return TimeSeries(res)
