@@ -145,7 +145,7 @@ def pick_a_day(
     Returns:
         TimeSeries: A new time series with only a day for each step.
     """
-    assert day_of_batch > -1, "'day_of_batch' can't be lesser than -1."
+    assert day_of_batch >= -1, "'day_of_batch' can't be lesser than -1."
 
     res = []
     fst_av_beg = granularity.get_first_available_beginning(day=ts.start_date)
@@ -185,7 +185,7 @@ def pick_a_weekday(
     Returns:
         TimeSeries: A new time series with only a day for each step.
     """
-    assert day_of_batch > -1, "'day_of_batch' can't be lesser than -1."
+    assert day_of_batch >= -1, "'day_of_batch' can't be lesser than -1."
 
     res = []
     fst_av_beg = granularity.get_first_available_beginning(day=ts.start_date)

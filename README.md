@@ -28,23 +28,24 @@ pip install gregory
 ```
 gregory
 ├── dataclass
-│   └── time_series_data.py --> class used to manage daily data
+│   └── time_series_data.py --> Class used to manage daily data.
 │
 ├── granularity
-│   └── granularity.py --> set of classes used for managing time intervals of different length
+│   ├── granularity.py --> Set of classes used for managing time intervals of different length.
+│   └── granularity_factory.py --> Factory class for creating granularity objects.
 │
 ├── timeseries
-│   ├── batches.py --> set of methods to operate on time series dividing them into batches
-│   ├── expr.py --> set of operations between time series
-│   ├── processing.py --> set of methods to elaborate time series
-│   └── time_series.py --> core class that represents a series of daily records
+│   ├── batches.py --> Set of methods to operate on time series dividing them into batches.
+│   ├── expr.py --> Set of operations between time series.
+│   ├── processing.py --> Set of methods to elaborate time series.
+│   └── time_series.py --> Core class that represents a series of daily records.
 │
 └── util
-    ├── agenda.py --> utils related to calendar info and evalutations
-    ├── bisect.py --> utils related to binary search
-    ├── decorators.py --> useful decorators
-    ├── dictionaries.py --> utils related to operations on dictionaries
-    └── relativedelta.py --> class that extends relativedelta with useful properties
+    ├── agenda.py --> Utils related to calendar info and evalutations.
+    ├── bisect.py --> Utils related to binary search.
+    ├── decorators.py --> Useful decorators.
+    ├── dictionaries.py --> Utils related to operations on dictionaries.
+    └── relativedelta.py --> Class that extends relativedelta with useful properties.
 ```
 
 ## License
