@@ -58,5 +58,5 @@ def find_delimiters(_list: list, first_element, second_element) -> tuple:
         tuple: First and last indexes of the searched range.
     """
     idx_min = bisect_left(_list, first_element)
-    idx_max = bisect_right(_list, second_element) + idx_min
+    idx_max = bisect_right(_list[idx_min:], second_element) + idx_min
     return idx_min, idx_max
