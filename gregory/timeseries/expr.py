@@ -17,7 +17,7 @@ def intersection(tsl_a: TimeSeries, tsl_b: TimeSeries) -> TimeSeries:
     Returns:
         TimeSeries: Output timeseries with shared days.
     """
-    intersection_dates = tsl_a.__indexes__.keys() & tsl_b.__indexes__.keys()
+    intersection_dates = tsl_a.keys() & tsl_b.keys()
     return TimeSeries(
         [
             TimeSeriesData(

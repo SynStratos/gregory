@@ -55,7 +55,7 @@ class Granularity(ABC):
         pass
 
     @abstractmethod
-    def __assert_included_day__(self, day: date, days: int):
+    def assert_included_day(self, day: date, days: int):
         """
         Checks if a range of days is included in the number of days of 
         the granularity step for the given day.
@@ -70,23 +70,6 @@ class Granularity(ABC):
     def delta(self) -> relativedelta:
         """Time delta for the given granularity."""
         return self.__evaluate_delta__()
-
-    def get_first_available_beginning(self, day: date) -> date:
-        """
-        Searches for the first granularity step beginning that follows a given 
-        day.
-
-        Args:
-            day (date): Starting day.
-
-        Returns:
-            date: Beginning of the needed granularity.
-        """
-        beg = self.get_beginning_of_granularity(day)
-        if beg >= day:
-            return beg
-        else:
-            return beg + self.delta
 
     def get_n_day_of_granularity(self, day: date, idx: int) -> date:
         """
@@ -105,7 +88,7 @@ class Granularity(ABC):
         Returns:
             date: N-th day of the granularity step.
         """
-        self.__assert_included_day__(day=day, days=idx)
+        self.assert_included_day(day=day, days=idx)
         if idx == -1:
             return self.get_end_of_granularity(day)
         return self.get_beginning_of_granularity(day) + relativedelta(days=idx)
@@ -146,7 +129,7 @@ class YearlyGranularity(Granularity):
     def get_end_of_granularity(self, day: date) -> date:
         return last_day_of_year(day)
 
-    def __assert_included_day__(self, day: date, days: int):
+    def assert_included_day(self, day: date, days: int):
         assert -1 <= days < days_of_year(day), assertion_err_msg
 
     def __evaluate_delta__(self) -> relativedelta:
@@ -160,7 +143,7 @@ class QuarterlyGranularity(Granularity):
     def get_end_of_granularity(self, day: date) -> date:
         return last_day_of_quarter(day)
 
-    def __assert_included_day__(self, day: date, days: int):
+    def assert_included_day(self, day: date, days: int):
         assert -1 <= days < days_of_quarter(day), assertion_err_msg
 
     def __evaluate_delta__(self):
@@ -174,7 +157,7 @@ class MonthlyGranularity(Granularity):
     def get_end_of_granularity(self, day: date) -> date:
         return last_day_of_month(day)
 
-    def __assert_included_day__(self, day: date, days: int):
+    def assert_included_day(self, day: date, days: int):
         assert -1 <= days < days_of_month(day), assertion_err_msg
 
     def __evaluate_delta__(self):
@@ -188,7 +171,7 @@ class WeeklyGranularity(Granularity):
     def get_end_of_granularity(self, day: date) -> date:
         return last_day_of_week(day)
 
-    def __assert_included_day__(self, day: date, days: int):
+    def assert_included_day(self, day: date, days: int):
         assert -1 <= days < 7, assertion_err_msg
 
     def __evaluate_delta__(self):
@@ -196,14 +179,14 @@ class WeeklyGranularity(Granularity):
 
 
 class DailyGranularity(Granularity):
-    def __assert_included_day__(self, *args, **kwargs):
-        raise AttributeError("Not available method for Daily Granularity.")
-
-    def get_n_day_of_granularity(self, *args, **kwargs):
+    def assert_included_day(self, *args, **kwargs):
         raise AttributeError("Not available method for Daily Granularity.")
 
     def get_n_weekday_of_granularity(self, *args, **kwargs):
         raise AttributeError("Not available method for Daily Granularity.")
+
+    def get_n_day_of_granularity(self, day: date, *args, **kwargs) -> date:
+        return day
 
     def get_beginning_of_granularity(self, day: date) -> date:
         return day

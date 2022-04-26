@@ -1,6 +1,7 @@
 .idea
 gregory/main.py
 docs
+gregory-demo.ipynb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

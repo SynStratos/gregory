@@ -7,7 +7,7 @@ from scipy.interpolate import interp1d
 
 from ..dataclass.time_series_data import TimeSeriesData
 from ..granularity.granularity import Granularity, DailyGranularity
-from ..util.agenda import calendar_by_steps
+from ..granularity.utils import get_first_available_beginning
 from ..util.bisect import index_of, find_delimiters
 
 
@@ -20,33 +20,23 @@ class TimeSeries(List[TimeSeriesData]):
     Class that inherits list to add useful methods for time series management.
     It contains only TimeSeriesData objects as elements.
     """
-    def __clear_cache__(self):
-        """Clear all cached properties."""
-        if hasattr(self, 'as_array'):
-            del self.as_array
-        if hasattr(self, '__indexes__'):
-            del self.__indexes__
-        if hasattr(self, 'titles'):
-            del self.titles
-        if hasattr(self, '__dates__'):
-            del self.__dates__
+    data_granularity: Granularity
 
-    def __refresh__(self):
-        """Sort the timeseries by date and reset its properties."""
-        self.__sort__()
-        self.__clear_cache__()
-
-    def __sort__(self):
-        """Sort the timeseries by date."""
-        self.sort(key=get_day)
-
-    def __init__(self, data=[]):
+    def __init__(self, data=[], data_granularity: Granularity = DailyGranularity()):
         super().__init__(data)
+        self.data_granularity = data_granularity
         self.__sort__()
 
-    def __setitem__(self, key, value):
-        super(TimeSeries, self).__setitem__(key, value)
-        self.__refresh__()
+    def __add__(self, other):
+        super().__add__(other)
+        self.__refresh()
+
+    def __deepcopy__(self):
+        return self.__class__([copy(element) for element in self])
+
+    def __delitem__(self, idx):
+        super().__delitem__(idx)
+        self.__refresh()
 
     def __getitem__(self, item):
         if isinstance(item, slice):
@@ -54,16 +44,27 @@ class TimeSeries(List[TimeSeriesData]):
         else:
             return super(TimeSeries, self).__getitem__(item)
 
-    def __add__(self, other):
-        super().__add__(other)
-        self.__refresh__()
+    def __setitem__(self, key, value):
+        super(TimeSeries, self).__setitem__(key, value)
+        self.__refresh()
 
-    def __delitem__(self, idx):
-        super().__delitem__(idx)
-        self.__refresh__()
+    def __sort__(self):
+        """Sort the timeseries by date."""
+        self.sort(key=get_day)
 
-    def __deepcopy__(self):
-        return self.__class__([copy(element) for element in self])
+    def __clear_cache(self):
+        """Clear all cached properties."""
+        if hasattr(self, 'as_array'):
+            del self.as_array
+        if hasattr(self, 'titles'):
+            del self.titles
+        if hasattr(self, 'dates'):
+            del self.dates
+
+    def __refresh(self):
+        """Sort the timeseries by date and reset its properties."""
+        self.__sort__()
+        self.__clear_cache()
 
     @property
     def start_date(self) -> date:
@@ -86,14 +87,9 @@ class TimeSeries(List[TimeSeriesData]):
         return [[el.day, v, k] for el in self for k, v in el.series.items()]
 
     @cached_property
-    def __dates__(self):
+    def dates(self):
         """List of all dates available in the time series."""
         return [data.day for data in self]
-
-    @cached_property
-    def __indexes__(self):
-        """Maps dates to their indexes in the time series."""
-        return {day.strftime("%Y-%m-%d"): idx for idx, day in enumerate(self.__dates__)}
 
     @cached_property
     def titles(self):
@@ -104,14 +100,17 @@ class TimeSeries(List[TimeSeriesData]):
         """Add a new TimeSeriesData object to the time series."""
         assert isinstance(__object, TimeSeriesData), "Only TimeSeriesData objects can be appended."
         super(TimeSeries, self).append(__object)
-        self.__refresh__()
+        self.__refresh()
 
     def copy(self):
         return self.__deepcopy__()
 
     def delete(self, day: date):
-        idx = index_of(self.__dates__, day)
+        idx = index_of(self.dates, day)
         self.__delitem__(idx)
+
+    def keys(self):
+        return {day.strftime("%Y-%m-%d") for day in self.dates}
 
     def update(self, __list: List[TimeSeriesData]):
         """
@@ -169,7 +168,7 @@ class TimeSeries(List[TimeSeriesData]):
             TimeSeriesData: A time series element for the searched day.
         """
         try:
-            return self[index_of(self.__dates__, day)]
+            return self[index_of(self.dates, day)]
         except (KeyError, ValueError):
             if else_empty:
                 return TimeSeriesData(day=day, series={})
@@ -200,15 +199,19 @@ class TimeSeries(List[TimeSeriesData]):
             inplace (bool, optional): Original time series is overwritten
             if set to True. Defaults to False.
         """
-        idx_min, idx_max = find_delimiters(self.__dates__, min_date, max_date)
+        idx_min, idx_max = find_delimiters(self.dates, min_date, max_date)
 
         if inplace:
             self[:] = self[idx_min:idx_max]
-            self.__clear_cache__()
+            self.__clear_cache()
         else:
             return self.__deepcopy__()[idx_min:idx_max]
 
-    def resample(self, granularity: Granularity = DailyGranularity(), inplace: bool = False):
+    def resample(self,
+                 granularity: Granularity = DailyGranularity(),
+                 index_of_granularity: int = 0,
+                 inplace: bool = False
+                 ):
         """
         Select only needed days for the given granularity.
         If a day is missing, create a new TimeSeriesData with empty series.
@@ -227,22 +230,35 @@ class TimeSeries(List[TimeSeriesData]):
         Args:
             granularity (Granularity, optional): Time step to use for
             selecting ranges. Defaults to DailyGranularity().
+            index_of_granularity (int, optional): The day of the time step
+            to pick as reference (0-indexed). Defaults to 0.
             inplace (bool, optional): Original time series is overwritten
             if set to True. Defaults to False.
         """
-        first_day = granularity.get_first_available_beginning(self.start_date)
-        days = calendar_by_steps(
-            start_date=first_day,
-            end_date=self.end_date,
-            step=granularity.delta
+        fst_av_beg = get_first_available_beginning(
+            day=self.start_date,
+            input_granularity=self.data_granularity,
+            output_granularity=granularity
         )
+        f_day = granularity.get_n_day_of_granularity(
+            day=fst_av_beg,
+            idx=index_of_granularity
+        )
+        resampled = []
+        temp_ts = self.__deepcopy__()
 
-        resampled = [self.__deepcopy__().get(day, else_empty=True) for day in days]
+        while f_day <= self.end_date:
+            resampled.append(
+                temp_ts.get(f_day, else_empty=True)
+            )
+            fst_av_beg += granularity.delta
+            f_day = granularity.get_n_day_of_granularity(fst_av_beg, idx=index_of_granularity)
 
         if inplace:
             self[:] = resampled
+            self.data_granularity = granularity
         else:
-            return TimeSeries(resampled)
+            return TimeSeries(resampled, data_granularity=granularity)
 
     def interpolate(self, title: str, method: str = 'linear', inplace: bool = False):
         """
