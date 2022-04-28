@@ -1,22 +1,26 @@
 # Gregory
-Python Framework to Manage Time Series.
+Python Framework to Manage Time Series structured as one-level dictionaries.
 
 ## Overview
-The main goal of this framework is to simplify the collection of temporal data and related operations.
-It is based on the concepts of **TimeSeries**, as a collection of records associated with a given day, and **Granularity**, to indicate a given time interval (e.g. daily, weekly, monthly, etc.).
+This framework is an extension of the **[OUTATIME](https://github.com/SynStratos/outatime)** package to facilitate operations on time series built as dictionaries.
 
-The object related to a single day (**TimeSeriesData**) contains two attributes:
-* day - the reference date for that record
-* series - a dictionary that collects for each information (key) the relative value for that day
+The main requirement is that the _data_ attribute of the dataclass **TimeSeriesData** is a one-level dictionary.
 
-On the time series it is possible to carry out numerous operations of different types, as for example:
-* add or remove records
-* search records by date
-* exclude records outside a determined range
-* resampling of data
+E.g.
+```
+TimeSeriesData(
+    day=date('2022-04-28'),
+    date={
+        'gold': 1887.77,
+        'silver': 23.03
+    }
+)
+```
+
+Some features are added such as:
 * interpolation of missing data
-* union and intersection
-* batch splitting and data aggregation
+* trend and seasonality calculation
+* methods of aggregation between dictionaries
 * other
 
 ## Installation
@@ -27,25 +31,14 @@ pip install gregory
 ## Framework Structure
 ```
 gregory
-├── dataclass
-│   └── time_series_data.py --> Class used to manage daily data.
-│
-├── granularity
-│   ├── granularity.py --> Set of classes used for managing time intervals of different length.
-│   └── granularity_factory.py --> Factory class for creating granularity objects.
 │
 ├── timeseries
 │   ├── batches.py --> Set of methods to operate on time series dividing them into batches.
-│   ├── expr.py --> Set of operations between time series.
 │   ├── processing.py --> Set of methods to elaborate time series.
 │   └── time_series.py --> Core class that represents a series of daily records.
 │
 └── util
-    ├── agenda.py --> Utils related to calendar info and evalutations.
-    ├── bisect.py --> Utils related to binary search.
-    ├── decorators.py --> Useful decorators.
-    ├── dictionaries.py --> Utils related to operations on dictionaries.
-    └── relativedelta.py --> Class that extends relativedelta with useful properties.
+    └── dictionaries.py --> Utils related to operations on dictionaries.
 ```
 
 ## License
