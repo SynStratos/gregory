@@ -1,5 +1,5 @@
 from outatime.granularity.granularity import Granularity, WeeklyGranularity
-from outatime.timeseries.batches import aggregate as o_aggregate
+from outatime.timeseries.batches import aggregate as aggregate_, split, pick_a_day, pick_a_weekday
 
 from ..timeseries.time_series import TimeSeries
 from ..util.dictionaries import aggregate_dicts
@@ -18,4 +18,4 @@ def aggregate(
         drop_tails: bool = False,
         store_day_of_batch: int = 0,
 ) -> TimeSeries:
-    return o_aggregate(ts, method, granularity, first_day_of_batch, last_day_of_batch, drop_tails, store_day_of_batch)
+    return aggregate_(ts, method, granularity, first_day_of_batch, last_day_of_batch, drop_tails, store_day_of_batch)
