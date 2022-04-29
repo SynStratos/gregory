@@ -83,7 +83,11 @@ class TimeSeries(TS):
                  inplace: bool = False,
                  default_data: dict = {}
                  ):
+        # if inplace:
         return super().resample(granularity, index_of_granularity, inplace, default_data)
+        # else:
+        #     res = super().resample(granularity, index_of_granularity, inplace, default_data)
+        #     return self.__class__(res[:])
 
     def interpolate(self, title: str, method: str = 'linear', inplace: bool = False):
         """

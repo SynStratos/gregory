@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setuptools.setup(
     name='gregory',
     packages=setuptools.find_packages(),
-    version='2.0.1',
+    version='2.0.2',
     description='Python framework to manage time series structured as one-level dictionaries.',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -22,10 +22,10 @@ setuptools.setup(
     ],
     keywords=['time series', 'ts', 'timeseries', 'temporal data'],
     install_requires=[
-        'outatime',
+        'outatime>=1.0.2,<2.0.0',
         'python-dateutil',
         'statsmodels',
-        'numpy',
+        'numpy ',
         'scipy'
     ]
 )
