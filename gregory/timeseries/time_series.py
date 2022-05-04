@@ -83,11 +83,7 @@ class TimeSeries(TS):
                  inplace: bool = False,
                  default_data: dict = {}
                  ):
-        # if inplace:
         return super().resample(granularity, index_of_granularity, inplace, default_data)
-        # else:
-        #     res = super().resample(granularity, index_of_granularity, inplace, default_data)
-        #     return self.__class__(res[:])
 
     def interpolate(self, title: str, method: str = 'linear', inplace: bool = False):
         """
@@ -117,7 +113,7 @@ class TimeSeries(TS):
 
         filtered_array_np = np.array(filtered_array)
 
-        y = np.array(filtered_array_np[:, 1], dtype=np.float)
+        y = np.array(filtered_array_np[:, 1], dtype=np.float64)
         x = np.arange(0, len(y))
         not_nan_y = y[~np.isnan(y)]
         not_nan_x = np.argwhere(~np.isnan(y)).reshape([-1])
@@ -162,6 +158,8 @@ class TimeSeries(TS):
                 element.data = {title: element.data.get(title)}
             except KeyError:
                 element.data = {}
+
+        temp_ts.__clear_cache()
 
         if inplace:
             self[:] = temp_ts
