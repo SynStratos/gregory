@@ -1,7 +1,9 @@
 from functools import reduce
 from typing import List
 
-from outatime.timeseries.expr import *
+from outatime.timeseries.expr import union, intersection
+from gregory.timeseries.time_series import TimeSeries
+from gregory.dataclass.time_series_data import TimeSeriesData
 
 
 def first_or_empty(list_: list):
