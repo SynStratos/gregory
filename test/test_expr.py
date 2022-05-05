@@ -3,6 +3,7 @@ from datetime import date, datetime
 from test.utils import data_generation
 
 from gregory.timeseries.expr import *
+from gregory.timeseries.time_series import TimeSeries
 
 
 def test_get_list_of_dates():

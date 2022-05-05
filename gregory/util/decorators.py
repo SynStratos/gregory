@@ -1,5 +1,3 @@
-from typing import List
-
 from outatime.util.decorators import *
 from outatime.timeseries.time_series import TimeSeries as TimeSeries_
 from gregory.timeseries.time_series import TimeSeries
