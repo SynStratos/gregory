@@ -32,9 +32,10 @@ def aggregate(
 def pick_a_day(
         ts: TimeSeries,
         granularity: Granularity = WeeklyGranularity(),
-        day_of_batch: int = -1
+        day_of_batch: int = -1,
+        default={},
 ) -> TimeSeries:
-    return pick_a_day_(ts, granularity, day_of_batch)
+    return pick_a_day_(ts, granularity, day_of_batch, default=default)
 
 
 @as_gregory_ts
@@ -42,9 +43,10 @@ def pick_a_weekday(
         ts: TimeSeries,
         granularity: Granularity = WeeklyGranularity(),
         day_of_batch: int = -1,
-        weekday: int = 1
+        weekday: int = 1,
+        default={},
 ) -> TimeSeries:
-    return pick_a_weekday_(ts, granularity, day_of_batch, weekday)
+    return pick_a_weekday_(ts, granularity, day_of_batch, weekday, default=default)
 
 
 @as_gregory_ts
