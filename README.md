@@ -10,7 +10,7 @@ E.g.
 ```
 TimeSeriesData(
     day=date('2022-04-28'),
-    date={
+    data={
         'gold': 1887.77,
         'silver': 23.03
     }
