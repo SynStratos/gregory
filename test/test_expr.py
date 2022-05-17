@@ -74,6 +74,20 @@ def test_union_dates():
     assert res == expected_result, "Unexpected result content."
 
 
+def test_union_type():
+    ts_1 = data_generation(start_date='2020-01-01', end_date='2020-01-05')
+    ts_2 = data_generation(start_date='2020-01-03', end_date='2020-01-07')
+    res = union(ts_1, ts_2)
+    assert isinstance(res, TimeSeries), "Unexpected type of result."
+
+
+def test_intersection_type():
+    ts_1 = data_generation(start_date='2020-01-01', end_date='2020-01-05')
+    ts_2 = data_generation(start_date='2020-01-03', end_date='2020-01-07')
+    res = intersection(ts_1, ts_2)
+    assert isinstance(res, TimeSeries), "Unexpected type of result."
+
+
 def test_list_intersection():
     ts_1 = data_generation(start_date='2020-01-01', end_date='2020-01-06')
     ts_2 = data_generation(start_date='2020-01-03', end_date='2020-01-08')
