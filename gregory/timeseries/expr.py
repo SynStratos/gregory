@@ -1,9 +1,10 @@
 from functools import reduce
 from typing import List
 
-from outatime.timeseries.expr import union, intersection
+from outatime.timeseries.expr import union as union_, intersection as intersection_, take_first_available
 from gregory.timeseries.time_series import TimeSeries
 from gregory.dataclass.time_series_data import TimeSeriesData
+from gregory.util.decorators import as_gregory_ts
 
 
 def first_or_empty(list_: list):
@@ -12,6 +13,16 @@ def first_or_empty(list_: list):
         return list_[0]
     except IndexError:
         return {}
+
+
+@as_gregory_ts
+def union(tsl_a: TimeSeries, tsl_b: TimeSeries, conflict_method=take_first_available) -> TimeSeries:
+    return union_(tsl_a, tsl_b, conflict_method)
+
+
+@as_gregory_ts
+def intersection(tsl_a: TimeSeries, tsl_b: TimeSeries, conflict_method=take_first_available) -> TimeSeries:
+    return intersection_(tsl_a, tsl_b, conflict_method)
 
 
 def get_list_of_dates(ts_list: List[TimeSeries]) -> list:
