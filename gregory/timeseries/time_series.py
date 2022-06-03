@@ -2,7 +2,6 @@ from copy import deepcopy
 from datetime import date
 from functools import cached_property
 import numpy as np
-from outatime.granularity.granularity import Granularity, DailyGranularity
 from scipy.interpolate import interp1d
 
 from outatime.timeseries.time_series import TimeSeries as TS
@@ -76,14 +75,6 @@ class TimeSeries(TS):
         value.
         """
         return np.array(self.as_array)
-
-    def resample(self,
-                 granularity: Granularity = DailyGranularity(),
-                 index_of_granularity: int = 0,
-                 inplace: bool = False,
-                 default_data: dict = {}
-                 ):
-        return super().resample(granularity, index_of_granularity, inplace, default_data)
 
     def interpolate(self, title: str, method: str = 'linear', inplace: bool = False):
         """

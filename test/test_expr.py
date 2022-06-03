@@ -74,18 +74,35 @@ def test_union_dates():
     assert res == expected_result, "Unexpected result content."
 
 
+def take_first_available(a, b):
+    if a is not None:
+        return a
+    elif b is not None:
+        return b
+    else:
+        raise Exception("Both arguments are None.")
+
+
 def test_union_type():
     ts_1 = data_generation(start_date='2020-01-01', end_date='2020-01-05')
     ts_2 = data_generation(start_date='2020-01-03', end_date='2020-01-07')
-    res = union(ts_1, ts_2)
+    res = union(ts_1, ts_2, conflict_method=take_first_available)
     assert isinstance(res, TimeSeries), "Unexpected type of result."
 
 
 def test_intersection_type():
     ts_1 = data_generation(start_date='2020-01-01', end_date='2020-01-05')
     ts_2 = data_generation(start_date='2020-01-03', end_date='2020-01-07')
-    res = intersection(ts_1, ts_2)
+    res = intersection(ts_1, ts_2, conflict_method=take_first_available)
     assert isinstance(res, TimeSeries), "Unexpected type of result."
+
+
+def first_or_empty(list_: list):
+    list_ = [_el for _el in list_ if _el]
+    try:
+        return list_[0]
+    except IndexError:
+        return {}
 
 
 def test_list_intersection():
@@ -93,7 +110,7 @@ def test_list_intersection():
     ts_2 = data_generation(start_date='2020-01-03', end_date='2020-01-08')
     ts_3 = data_generation(start_date='2020-01-05', end_date='2020-01-09')
 
-    res = list_intersection([ts_1, ts_2, ts_3])
+    res = list_intersection([ts_1, ts_2, ts_3], conflict_method=first_or_empty)
     assert isinstance(res, TimeSeries), "Unexpected type of result."
     expected_result_dates = [
         datetime.strptime("2020-01-05", "%Y-%m-%d").date(),
@@ -107,7 +124,7 @@ def test_list_union():
     ts_2 = data_generation(start_date='2020-01-03', end_date='2020-01-08')
     ts_3 = data_generation(start_date='2020-01-05', end_date='2020-01-09')
 
-    res = list_union([ts_1, ts_2, ts_3])
+    res = list_union([ts_1, ts_2, ts_3], conflict_method=first_or_empty)
     assert isinstance(res, TimeSeries), "Unexpected type of result."
     expected_result_dates = [
         datetime.strptime("2020-01-01", "%Y-%m-%d").date(),

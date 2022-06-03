@@ -14,7 +14,8 @@ def aggregate_dicts(dicts: List[dict], method=sum) -> dict:
 
     Args:
         dicts (List[dict]): Input list of dictionaries.
-        method (optional): method to aggregate common values between the input dictionaries. Defaults to sum.
+        method (optional): method to aggregate common values between the
+        input dictionaries. Defaults to sum.
 
     Returns:
         dict: A single dictionary with aggregated values.
