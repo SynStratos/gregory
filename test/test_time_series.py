@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import numpy as np
+from outatime.granularity.granularity import MonthlyGranularity
 
 from test.utils import data_generation
 
@@ -38,3 +39,19 @@ def test_interpolate():
     ts_int = ts.interpolate(title='pippo')
     assert ts_int[1].data != {}, "Missing data has not be filled."
     assert ts_int[1].data.get('pippo'), "Missing interpolated key."
+
+
+def test_resample_inplace():
+    def method(list_):
+        if list_:
+            return list_[0]
+        else:
+            return {}
+    ts = data_generation(start_date='2020-01-01', end_date='2021-01-05')
+    dates_a = ts.dates[:]
+    as_array_a = ts.as_array
+    ts.resample(granularity=MonthlyGranularity(), inplace=True, method=method)
+    dates_b = ts.dates[:]
+    as_array_b = ts.as_array
+    assert dates_a != dates_b, "TimeSeries dates not refreshed after resample."
+    assert as_array_a != as_array_b, "TimeSeries as_array not refreshed after resample."

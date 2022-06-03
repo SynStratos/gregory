@@ -1,27 +1,19 @@
 from functools import reduce
-from typing import List
+from typing import List, Callable, Any, Dict
 
-from outatime.timeseries.expr import union as union_, intersection as intersection_, take_first_available
+from outatime.timeseries.expr import union as union_, intersection as intersection_
 from gregory.timeseries.time_series import TimeSeries
 from gregory.dataclass.time_series_data import TimeSeriesData
 from gregory.util.decorators import as_gregory_ts
 
 
-def first_or_empty(list_: list):
-    list_ = [_el for _el in list_ if _el]
-    try:
-        return list_[0]
-    except IndexError:
-        return {}
-
-
 @as_gregory_ts
-def union(tsl_a: TimeSeries, tsl_b: TimeSeries, conflict_method=take_first_available) -> TimeSeries:
+def union(tsl_a: TimeSeries, tsl_b: TimeSeries, conflict_method: Callable[[Dict, Dict], Dict]) -> TimeSeries:
     return union_(tsl_a, tsl_b, conflict_method)
 
 
 @as_gregory_ts
-def intersection(tsl_a: TimeSeries, tsl_b: TimeSeries, conflict_method=take_first_available) -> TimeSeries:
+def intersection(tsl_a: TimeSeries, tsl_b: TimeSeries, conflict_method: Callable[[Dict, Dict], Dict]) -> TimeSeries:
     return intersection_(tsl_a, tsl_b, conflict_method)
 
 
@@ -71,15 +63,15 @@ def union_dates(dates: list) -> list:
     return _union_dates
 
 
-def list_intersection(ts_list: List[TimeSeries], conflict_method=first_or_empty) -> TimeSeries:
+def list_intersection(ts_list: List[TimeSeries], conflict_method: Callable[[List[Dict]], Dict]) -> TimeSeries:
     """
     Given a list of time series, generates a new time series with only shared
     days and all the contained values.
 
     Args:
         ts_list (List[TimeSeries]): Input list of time series.
-        conflict_method (None, optional): Method to apply when choosing
-        data for matching days. Defaults to first_or_empty.
+        conflict_method (Callable[[List[Dict]], Dict]): Method to apply
+        when choosing data for matching days.
 
     Returns:
         TimeSeries: Output timeseries with shared days.
@@ -98,15 +90,15 @@ def list_intersection(ts_list: List[TimeSeries], conflict_method=first_or_empty)
     return TimeSeries(intersection_result)
 
 
-def list_union(ts_list: List[TimeSeries], conflict_method=first_or_empty) -> TimeSeries:
+def list_union(ts_list: List[TimeSeries], conflict_method: Callable[[List[Dict]], Dict]) -> TimeSeries:
     """
     Given a list of time series, generates a new time series with the union of
     all days of both series.
 
     Args:
         ts_list (List[TimeSeries]): Input list of time series.
-        conflict_method (None, optional): Method to apply when choosing
-        data for matching days. Defaults to first_or_empty.
+        conflict_method (Callable[[List[Dict]], Dict]): Method to apply
+        when choosing data for matching days.
 
     Returns:
         TimeSeries: Output timeseries with all days.

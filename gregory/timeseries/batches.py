@@ -33,8 +33,10 @@ def pick_a_day(
         ts: TimeSeries,
         granularity: Granularity = WeeklyGranularity(),
         day_of_batch: int = -1,
-        default={},
+        default=None,
 ) -> TimeSeries:
+    if default is None:
+        default = {}
     return pick_a_day_(ts, granularity, day_of_batch, default=default)
 
 
@@ -44,8 +46,10 @@ def pick_a_weekday(
         granularity: Granularity = WeeklyGranularity(),
         day_of_batch: int = -1,
         weekday: int = 1,
-        default={},
+        default=None,
 ) -> TimeSeries:
+    if default is None:
+        default = {}
     return pick_a_weekday_(ts, granularity, day_of_batch, weekday, default=default)
 
 
