@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setuptools.setup(
     name='gregory',
     packages=setuptools.find_packages(),
-    version='2.3.1',
+    version='3.0.0',
     description='Python framework to manage time series structured as one-level dictionaries.',
     long_description=long_description,
     long_description_content_type="text/markdown",
