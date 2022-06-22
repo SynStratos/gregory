@@ -3,6 +3,7 @@ from datetime import datetime
 import numpy as np
 from outatime.granularity.granularity import MonthlyGranularity
 
+from gregory.timeseries.time_series import TimeSeries
 from test.utils import data_generation
 
 
@@ -55,3 +56,10 @@ def test_resample_inplace():
     as_array_b = ts.as_array
     assert dates_a != dates_b, "TimeSeries dates not refreshed after resample."
     assert as_array_a != as_array_b, "TimeSeries as_array not refreshed after resample."
+
+
+def test_empty_time_series():
+    try:
+        _ = TimeSeries()
+    except:
+        raise AssertionError("Unable to create an empty time series.")
