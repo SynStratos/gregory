@@ -24,10 +24,11 @@ def moving_average(series: np.ndarray, window_size: int, mode: str = 'same') -> 
     # create denominator to manage starting and ending part of the timeseries
     denominator = np.full((1, len(series)), window_size, dtype=int)
     half_ws = window_size // 2
-    window_head = np.arange(-half_ws, 0)
-    window_tail = np.flip(window_head)
-    denominator[:, :half_ws] += window_head
-    denominator[:, -half_ws:] += window_tail
+    if half_ws > 0:
+        window_head = np.arange(-half_ws, 0)
+        window_tail = np.flip(window_head)
+        denominator[:, :half_ws] += window_head
+        denominator[:, -half_ws:] += window_tail
 
     return np.divide(np.convolve(a=series, v=np.ones(window_size), mode=mode), denominator)
 
