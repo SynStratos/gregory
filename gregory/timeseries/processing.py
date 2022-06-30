@@ -1,4 +1,4 @@
-from math import ceil
+from math import ceil, floor
 import numpy as np
 from typing import Tuple
 
@@ -23,12 +23,14 @@ def moving_average(series: np.ndarray, window_size: int, mode: str = 'same') -> 
 
     # create denominator to manage starting and ending part of the timeseries
     denominator = np.full((1, len(series)), window_size, dtype=int)
-    half_ws = window_size // 2
-    if half_ws > 0:
-        window_head = np.arange(-half_ws, 0)
-        window_tail = np.flip(window_head)
-        denominator[:, :half_ws] += window_head
-        denominator[:, -half_ws:] += window_tail
+    head_window_size = ceil((window_size - 1)/2)
+    tail_window_size = floor((window_size - 1)/2)
+
+    if tail_window_size > 0:
+        window_head = np.arange(-head_window_size, 0)
+        window_tail = np.flip(np.arange(-tail_window_size, 0))
+        denominator[:, :head_window_size] += window_head
+        denominator[:, -tail_window_size:] += window_tail
 
     return np.divide(np.convolve(a=series, v=np.ones(window_size), mode=mode), denominator)
 
