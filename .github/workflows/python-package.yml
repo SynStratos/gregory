@@ -5,9 +5,9 @@ name: Python package
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, stable ]
   pull_request:
-    branches: [ main ]
+    branches: [ stable ]
 
 jobs:
   build:
@@ -17,7 +17,8 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
-
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -31,6 +32,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         python -m pip install "outatime>=3.0.0, <4.0.0"
         python -m pip install python-dateutil statsmodels numpy scipy
+        python -m pip install coveralls
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -39,4 +41,8 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest test
+        coverage run --source=outatime -m pytest test/
+    - name: Run Coveralls
+      continue-on-error: true
+      run: |
+        coveralls --service=github

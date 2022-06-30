@@ -2,7 +2,7 @@
 Python Framework to Manage Time Series structured as one-level dictionaries.
 
 ## Overview
-This framework is an extension of the **[OUTATIME](https://github.com/SynStratos/outatime)** package to facilitate operations on time series built as dictionaries.
+This framework is an extension of the **[outatime](https://github.com/SynStratos/outatime)** package to facilitate operations on time series built as dictionaries.
 
 The main requirement is that the _data_ attribute of the dataclass **TimeSeriesData** is a one-level dictionary.
 
@@ -24,8 +24,16 @@ Some features are added such as:
 * other
 
 ## Installation
+To install it use:
+
 ```
 pip install gregory
+```
+
+or download the last git version and use:
+
+```
+python setup.py install
 ```
 
 ## Framework Structure
