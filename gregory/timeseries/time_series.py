@@ -35,32 +35,49 @@ class TimeSeries(TS):
         """List of possible TITLES in the time series data."""
         return sorted(set([k for item in self for k in item.data.keys()]))
 
-    def keys(self):
-        return {day.strftime("%Y-%m-%d") for day in self.dates}
-
-    def update_from_array(self, __array: list):
+    def as_np_array(self) -> np.ndarray:
         """
-        Add all data of the given array to the time series.
-        Updates existing elements if already in the time series.
-        Input array must be in the following format:
-            [[date, value, title]]
+        Return the time series as a numpy array, with a row for each data
+        value.
+        """
+        return np.array(self.as_array)
+
+    def filter_by_title(self, title: str, inplace: bool = False):
+        """
+        Filter the time series to return only the given key for all days.
+
+        Example:
+            [TimeSeriesData(day=2022-04-14, data={'a': 1, 'b': 8}),
+            TimeSeriesData(day=2022-04-15, data={'b': 7}),
+            TimeSeriesData(day=2022-04-16, data={'a': 3, 'b': 8})]
+
+            title = 'a'
+
+            Returns:
+                [TimeSeriesData(day=2022-04-14, data={'a': 1}),
+                TimeSeriesData(day=2022-04-15, data={}),
+                TimeSeriesData(day=2022-04-16, data={'a': 3})]
 
         Args:
-            __array (list): Input array of new data.
+            title (str): Given key.
+            inplace (bool, optional): Original time series is overwritten
+            if set to True. Defaults to False.
         """
-        for new_element in __array:
+        assert title in self.titles, "requested title is missing"
+
+        temp_ts = deepcopy(self)
+        for element in temp_ts:
             try:
-                stored_element = self.get(new_element[0])
-                stored_element.data.update(
-                    {new_element[2]: new_element[1]}
-                )
+                element.data = {title: element.data.get(title)}
             except KeyError:
-                self.append(
-                    TimeSeriesData(
-                        day=new_element[0],
-                        data={new_element[2]: new_element[1]}
-                    )
-                )
+                element.data = {}
+
+        temp_ts.__clear_cache()
+
+        if inplace:
+            self[:] = temp_ts
+        else:
+            return temp_ts
 
     def get_series_or_empty(self, day: date):
         """
@@ -69,12 +86,8 @@ class TimeSeries(TS):
         """
         return self.get(day, value={}).data
 
-    def as_np_array(self) -> np.ndarray:
-        """
-        Return the time series as a numpy array, with a row for each data
-        value.
-        """
-        return np.array(self.as_array)
+    def keys(self):
+        return {day.strftime("%Y-%m-%d") for day in self.dates}
 
     def interpolate(self, title: str, method: str = 'linear', inplace: bool = False):
         """
@@ -120,39 +133,27 @@ class TimeSeries(TS):
             temp_ts.update_from_array(filtered_array_np)
             return temp_ts
 
-    def filter_by_title(self, title: str, inplace: bool = False):
+    def update_from_array(self, __array: list):
         """
-        Filter the time series to return only the given key for all days.
-
-        Example:
-            [TimeSeriesData(day=2022-04-14, data={'a': 1, 'b': 8}),
-            TimeSeriesData(day=2022-04-15, data={'b': 7}),
-            TimeSeriesData(day=2022-04-16, data={'a': 3, 'b': 8})]
-
-            title = 'a'
-
-            Returns:
-                [TimeSeriesData(day=2022-04-14, data={'a': 1}),
-                TimeSeriesData(day=2022-04-15, data={}),
-                TimeSeriesData(day=2022-04-16, data={'a': 3})]
+        Add all data of the given array to the time series.
+        Updates existing elements if already in the time series.
+        Input array must be in the following format:
+            [[date, value, title]]
 
         Args:
-            title (str): Given key.
-            inplace (bool, optional): Original time series is overwritten
-            if set to True. Defaults to False.
+            __array (list): Input array of new data.
         """
-        assert title in self.titles, "requested title is missing"
-
-        temp_ts = deepcopy(self)
-        for element in temp_ts:
+        for new_element in __array:
             try:
-                element.data = {title: element.data.get(title)}
+                stored_element = self.get(new_element[0])
+                stored_element.data.update(
+                    {new_element[2]: new_element[1]}
+                )
             except KeyError:
-                element.data = {}
-
-        temp_ts.__clear_cache()
-
-        if inplace:
-            self[:] = temp_ts
-        else:
-            return temp_ts
+                self.append(
+                    TimeSeriesData(
+                        day=new_element[0],
+                        data={new_element[2]: new_element[1]}
+                    )
+                )
+            self.__refresh()
