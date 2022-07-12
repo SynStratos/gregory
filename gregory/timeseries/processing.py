@@ -63,35 +63,50 @@ def trend_and_seasonality(series: np.ndarray, freq: int, window_size: int) -> Tu
 
 def add_trend_seasonality(
         ts: TimeSeries,
-        granularity: Granularity,
-        window_size: int = 12
+        granularity: Granularity = None,
+        window_size: int = 12,
+        label: str = None,
+        trend_label: str = "trend",
+        seasonality_label: str = "seasonality"
 ) -> TimeSeries:
     """
     Adds trend and seasonality data to the given timeseries.
 
     Args:
         ts (TimeSeries): Input timeseries data.
-        granularity (Granularity): Get the time delta used for frequency.
+        granularity (Granularity, optional): Get the time delta used for frequency. Defaults to None.
         window_size (int): Size of the window used for the moving average.
+        label (str, optional): Select only a label to calculate trend and seasonality on its data.
+        Defaults to None.
+        trend_label (str, optional): Specify the label of the trend data. Defaults to "trend".
+        seasonality_label (str, optional):  Specify the label of the seasonality data.
+        Defaults to "seasonality".
 
     Returns:
         TimeSeries: Output timeseries with trend and seasonality information.
     """
     source = ts.as_np_array()
+    if label:
+        where = source[:, 2] == label
+        source = source[where]
     series = source[:, 1]
 
-    delta = granularity.delta
+    delta = granularity.delta if granularity else ts.data_granularity.delta
     frequency = 1 // delta.total_years
 
-    trend, seasonality = trend_and_seasonality(series, freq=int(frequency), window_size=window_size)
+    trend, seasonality = trend_and_seasonality(
+        series,
+        freq=int(frequency),
+        window_size=window_size
+    )
 
     trend_all = source.copy()
     trend_all[:, 1] = np.round(trend, 2)
-    trend_all[:, 2] = "trend"
+    trend_all[:, 2] = trend_label
 
     seasonality_all = source.copy()
     seasonality_all[:, 1] = np.round(seasonality, 2)
-    seasonality_all[:, 2] = "seasonality"
+    seasonality_all[:, 2] = seasonality_label
 
     if frequency == 1:
         series = trend_all
