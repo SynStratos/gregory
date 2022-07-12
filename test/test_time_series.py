@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 import numpy as np
 from outatime.granularity.granularity import MonthlyGranularity
@@ -63,3 +63,23 @@ def test_empty_time_series():
         _ = TimeSeries()
     except:
         raise AssertionError("Unable to create an empty time series.")
+
+
+def test_update_from_array():
+    ts = data_generation(start_date='2020-01-01', end_date='2020-01-05')
+    ts_as_array = ts.as_array
+
+    array_to_insert = [
+        [date(2020, 1, 1), 999, 'topolino'],
+        [date(2020, 1, 3), 998, 'topolino'],
+    ]
+
+    ts.update_from_array(array_to_insert)
+
+    assert ts_as_array != ts.as_array, "Time series 'as_array' property did not change."
+
+    assert 'topolino' in ts.get(date(2020, 1, 1)).data.keys(), "Missing 'topolino' in '2020-01-01' data."
+    assert 'topolino' in ts.get(date(2020, 1, 3)).data.keys(), "Missing 'topolino' in '2020-01-03' data."
+    assert 'topolino' == ts.as_array[2][2], "Missing 'topolino' in '2020-01-03' as array data."
+    assert 'topolino' == ts.as_array[5][2], "Missing 'topolino' in '2020-01-03' as array data."
+
