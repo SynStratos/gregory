@@ -156,4 +156,4 @@ class TimeSeries(TS):
                         data={new_element[2]: new_element[1]}
                     )
                 )
-            self.__refresh()
+        self.__refresh()

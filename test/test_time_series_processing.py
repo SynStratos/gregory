@@ -4,9 +4,7 @@ from test.utils import data_generation
 
 def test_add_trend_seasonality_default():
     ts = data_generation(start_date='2017-01-01', end_date='2020-12-31')
-    res = add_trend_seasonality(
-        ts=ts
-    )
+    res = add_trend_seasonality(ts=ts)
     assert "trend" in res.titles, "Missing 'trend' in resulting data"
     assert "seasonality" in res.titles, "Missing 'seasonality' in resulting data"
 
