@@ -30,7 +30,7 @@ setuptools.setup(
     ],
     keywords=['time series', 'ts', 'timeseries', 'temporal data'],
     install_requires=[
-        'outatime>=3.0.1,<4.0.0',
+        'outatime>=3.2.1,<4.0.0',
         'python-dateutil',
         'statsmodels',
         'numpy',
